@@ -1,8 +1,5 @@
 name: build-grpc-requests
-on:
-  push:
-    paths-ignore:
-      - '.github/workflows/**'
+on: [push]
 
 jobs:
   publish-grpc-release:
