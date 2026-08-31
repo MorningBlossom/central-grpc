@@ -18,6 +18,12 @@ jobs:
           fetch-depth: '0'
           token: ${{ secrets.GH_PAT }}
 
+      - name: Set up Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: '25.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Set up Git identity
         run: |
           git config user.name "github-actions[bot]"
@@ -43,19 +49,20 @@ jobs:
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version: $NEW_VERSION"
 
+      - name: Build gRPC protos
+        run: |
+          # Add your build commands here
+          protoc --version &&
+          echo "Building protos for version ${{ steps.bump_version.outputs.new_version }}..." &&
+          protoc --go_out=. --go_opt=paths=source_relative \
+          --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+          protos/*/*.proto
+
       - name: Commit updated version file
         run: |
           git add BUMP_VERSION
           git commit -m "chore: bump version to v${{ steps.bump_version.outputs.new_version }} [skip ci]"
           git push
-
-      - name: Build gRPC protos
-        run: |
-          # Add your build commands here
-          echo "Building protos for version ${{ steps.bump_version.outputs.new_version }}..." &&
-          protoc --go_out=. --go_opt=paths=source_relative \
-          --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-          protos/*/*.proto
 
       - name: Create Git Tag
         run: |
