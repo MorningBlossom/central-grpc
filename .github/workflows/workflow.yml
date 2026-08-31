@@ -70,7 +70,7 @@ jobs:
 
       - name: Commit updated version file
         run: |
-          git add BUMP_VERSION
+          git add BUMP_VERSION protos/**/*.pb.go
           git commit -m "chore: bump version to v${{ steps.bump_version.outputs.new_version }} [skip ci]"
           git push
 
