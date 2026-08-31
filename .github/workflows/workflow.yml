@@ -1,0 +1,70 @@
+name: build-grpc-requests
+on:
+  push:
+    paths-ignore:
+      - '.github/workflows/**'
+
+jobs:
+  publish-grpc-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    name: building GRPC
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Set up Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version in file
+        id: bump_version
+        run: |
+          # If file doesn't exist, start at 0.1.0
+          if [ ! -f BUMP_VERSION ]; then
+            echo "0.1.0" > BUMP_VERSION
+          fi
+          
+          CURRENT_VERSION=$(cat BUMP_VERSION | tr -d '[:space:]')
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Simple patch version bump (e.g., 1.0.0 -> 1.0.1)
+          IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
+          patch=$((patch + 1))
+          NEW_VERSION="$major.$minor.$patch"
+          
+          echo "$NEW_VERSION" > BUMP_VERSION
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      - name: Commit updated version file
+        run: |
+          git add BUMP_VERSION
+          git commit -m "chore: bump version to v${{ steps.bump_version.outputs.new_version }} [skip ci]"
+          git push
+
+      - name: Build gRPC protos
+        run: |
+          # Add your build commands here
+          echo "Building protos for version ${{ steps.bump_version.outputs.new_version }}..." &&
+          protoc --go_out=. --go_opt=paths=source_relative \
+          --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+          protos/*/*.proto
+
+      - name: Create Git Tag
+        run: |
+          TAG="v${{ steps.bump_version.outputs.new_version }}"
+          git tag "$TAG"
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.bump_version.outputs.new_version }}
+          name: Release v${{ steps.bump_version.outputs.new_version }}
