@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package Example;
+
+option go_package = "://github.com";
+
+service ExampleGreeting {
+  rpc SayHelloExample(HelloRequest) returns (HelloReply) {}
+}
+
+message HelloRequest {
+  string name = 1;
+  string age = 2;
+}
+
+message HelloReply {
+  string message = 1;
+  string age = 2;
+}
