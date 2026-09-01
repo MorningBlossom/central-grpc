@@ -96,3 +96,7 @@ jobs:
           repository: MorningBlossom/central-grpc-go
           tag_name: v${{ steps.bump_version.outputs.new_version }}
           name: Release v${{ steps.bump_version.outputs.new_version }}
+      
+      - name: cleanup
+        run: |
+          rm -rf central-grpc-go
