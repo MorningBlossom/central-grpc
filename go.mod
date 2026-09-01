@@ -1,4 +1,4 @@
-module github.com/MorningBloosom/Central-GRPC
+module github.com/MorningBlossom/central-grpc
 
 go 1.27.0
 

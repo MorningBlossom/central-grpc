@@ -39,9 +39,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: clone grpc go repo
+        run : |
+          git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/MorningBlossom/central-grpc-go.git
+
       - name: Bump version in file
         id: bump_version
         run: |
+          cd central-grpc-go
+          
           # If file doesn't exist, start at 0.1.0
           if [ ! -f BUMP_VERSION ]; then
             echo "0.1.0" > BUMP_VERSION
@@ -62,20 +68,23 @@ jobs:
       - name: Build gRPC protos
         run: |
           # Add your build commands here
+          export PATH="$PATH:$(go env GOPATH)/bin"
           protoc --version &&
           echo "Building protos for version ${{ steps.bump_version.outputs.new_version }}..." &&
-          protoc --go_out=. --go_opt=paths=source_relative \
-          --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+          protoc --go_out=central-grpc-go --go_opt=paths=source_relative \
+          --go-grpc_out=central-grpc-go --go-grpc_opt=paths=source_relative \
           protos/*/*.proto
 
       - name: Commit updated version file
         run: |
+          cd central-grpc-go
           git add BUMP_VERSION protos/**/*.pb.go
           git commit -m "chore: bump version to v${{ steps.bump_version.outputs.new_version }} [skip ci]"
           git push
 
       - name: Create Git Tag
         run: |
+          cd central-grpc-go
           TAG="v${{ steps.bump_version.outputs.new_version }}"
           git tag "$TAG"
           git push origin "$TAG"
@@ -83,5 +92,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ secrets.GH_PAT }}
+          repository: MorningBlossom/central-grpc-go
           tag_name: v${{ steps.bump_version.outputs.new_version }}
           name: Release v${{ steps.bump_version.outputs.new_version }}
