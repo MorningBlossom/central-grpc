@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package Shadow;
+
+option go_package = "://github.com";
+
+service Shadow {
+  rpc SayShadow(HelloShadow) returns (ReplyShadow) {}
+}
+
+message HelloShadow {
+  string name = 1;
+}
+
+message ReplyShadow {
+  string message = 1;
+}
