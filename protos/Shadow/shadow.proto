@@ -5,10 +5,11 @@ package Shadow;
 option go_package = "://github.com";
 
 service Shadow {
-  rpc SayShadow(HelloShadow) returns (ReplyShadow) {}
+  rpc SaySearchAds(RequestInfo) returns (ReplyShadow) {}
+  rpc SayHomeAds(RequestInfo) returns (ReplyShadow) {}
 }
 
-message HelloShadow {
+message RequestInfo {
   string name = 1;
 }
 
